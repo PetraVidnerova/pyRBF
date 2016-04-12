@@ -11,7 +11,7 @@ y = data[data.columns[-1]]
 X = X.as_matrix()
 y = y.as_matrix()
 
-model = RBFNet(10,p=0.1)
+model = RBFNet(10,p=0.1,compute_widths=False)
 model.fit(X,y) 
 yy = model.predict(X)
 

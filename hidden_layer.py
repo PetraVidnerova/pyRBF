@@ -6,27 +6,33 @@ from math import sqrt
 
 class HiddenLayer():
     
-    def __init__(self, k, centers=None,p=1.0,compute_widths=True):
+    def __init__(self, k=10, centers=None,p=1.0,compute_widths=True):
         self.k = k 
         self.centers = centers
-        self.kernels = np.array([ create_kernel(p=p) for _ in range(k) ])
+        #        self.kernels = np.array([ create_kernel(p=p) for _ in range(self.k) ])
+        self.p = p 
         self.compute_widths = compute_widths 
 
     def fit(self,X):
         if not self.centers:
             self.set_centers(X)
+        self.kernels = np.array([ create_kernel(p=self.p) for _ in range(self.k)])
         if self.compute_widths:
             self.set_widths(X) 
-                  
+        
+
     def set_centers(self, X):
+        print("Setting centers %s" % self.k)
         kmeans = KMeans(n_clusters=self.k)  
         kmeans.fit(X)
         self.centers = kmeans.cluster_centers_
 
     def set_widths(self, X): 
+        print("Setting widths")
         max_dist = np.max(pairwise_distances(self.centers))
         for kernel in self.kernels:
-            kernel.set_param(max_dist/sqrt(2.0 * self.k))
+            # 1/width
+            kernel.set_param(sqrt(2.0 * self.k)/max_dist)
 
     def fit_transform(self, X):
         self.fit(X)
