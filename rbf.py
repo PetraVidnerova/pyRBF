@@ -10,19 +10,6 @@ class RBFNet(BaseEstimator,RegressorMixin):
         self.p = p
         self.compute_widths = compute_widths
 
-    def get_params(self, deep=True):
-        return {"k": self.k, "p" : self.p, "compute_widths": self.compute_widths}
-
-    def set_params(self, **parameters):
-        for parameter, value in parameters.items():
-            if parameter == 'k':
-                self.k = value
-            elif parameter == 'p':
-                self.p = value
-            elif parameter == 'compute_widths':
-                compute_widths = value 
-        return self
-
 
     def fit(self,X,y):
         self.hl = HiddenLayer(self.k, p=self.p, compute_widths=self.compute_widths) 
