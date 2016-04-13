@@ -17,7 +17,7 @@ from scoop import futures
 def eval_model(k,set_centers):
     global X_train, Y_train
 
-    model = RBFNet(k, compute_widths=False, p=0.00001, set_centers=set_centers)
+    model = RBFNet(k, compute_widths=True, p=0.0001, set_centers=set_centers)
     model.fit(X_train, Y_train)
     yy = model.predict(X_train)
 
