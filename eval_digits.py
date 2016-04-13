@@ -48,7 +48,7 @@ if __name__ == "__main__":
     random_acc_means = []
     kmeans_err_means = [] 
     kmeans_acc_means = []
-    K = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    K = [10, 25, 50, 75, 100, 150, 200, 300, 400, 500]
 
     for k in K:
         err_list = []
