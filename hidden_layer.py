@@ -15,25 +15,36 @@ class HiddenLayer():
 
     def fit(self,X):
         if not self.centers:
-            self.set_centers(X)
+            self._set_centers(X)
         self.kernels = np.array([ create_kernel(p=self.p) for _ in range(self.k)])
         if self.compute_widths:
-            self.set_widths(X) 
+            self._set_widths(X) 
         
 
-    def set_centers(self, X):
+    def _set_centers(self, X):
         print("Setting centers %s" % self.k)
         kmeans = KMeans(n_clusters=self.k)  
         kmeans.fit(X)
         self.centers = kmeans.cluster_centers_
 
-    def set_widths(self, X): 
-        print("Setting widths")
+    def _set_widths_max_dist():
         max_dist = np.max(pairwise_distances(self.centers))
         for kernel in self.kernels:
             # 1/width
             kernel.set_param(sqrt(2.0 * self.k)/max_dist)
 
+    def _set_widths_nearest_neigbor(n=3):
+        nbrs = NearestNeigbors(n_neighbors=3, algorithm='ball_tree').fit(self.centers)
+        for i in range(len(self.centers)):
+            distances, indices = nbrs.kneighbors(self.centers[i]) 
+            width = 0.1*sum(distances[0])/len(distances[0])
+            self.kernels[i].set_param(1/width) 
+
+    def _set_widths(self, X, type="nearest_neigbor"):
+        print("Setting widths")
+        widths_func = getattr(self, "_set_widths_"+type)  
+        widths_func() 
+        
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X) 
