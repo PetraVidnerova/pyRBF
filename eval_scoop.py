@@ -27,7 +27,7 @@ if __name__ == "__main__":
     #(X_train, Y_train), (X_test, Y_test) = preprocess_digits() 
     (X_train, Y_train), (X_test, Y_test) = preprocess_mnist() 
 
-    param_values = list( np.logspace(-10,-20, 4)  )
+    param_values = list( np.logspace(-4, -7, 4)  )
     ret_values = list(futures.map(lambda x: eval(x, X_train, Y_train, X_test, Y_test), param_values))
     
     for model, train_acc, test_acc in ret_values:
