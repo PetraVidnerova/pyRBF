@@ -14,17 +14,17 @@ from scoop import futures
 # For digits test and train are same datasets.  
 (X_train, Y_train), (X_test, Y_test) = preprocess_digits() 
 
-def eval_model(k,set_centers):
+def eval_model(k, set_centers, compute_widths, p):
     global X_train, Y_train
 
-    model = RBFNet(k, compute_widths=True, p=0.0001, set_centers=set_centers)
+    model = RBFNet(k, compute_widths=compute_widths, p=p, set_centers=set_centers, verbose=False)
     model.fit(X_train, Y_train)
     yy = model.predict(X_train)
 
     err = 100*mean_squared_error(Y_train,yy)
-    print("Err:", err)
+#    print("Err:", err)
     acc = class_accuracy(Y_train, yy)
-    print("Acc:", acc)
+#    print("Acc:", acc)
     
     return err, acc
 
@@ -44,47 +44,42 @@ def eval_model(k,set_centers):
 
 if __name__ == "__main__":
 
-    random_err_means = [] 
-    random_acc_means = []
-    kmeans_err_means = [] 
-    kmeans_acc_means = []
-    K = [10, 25, 50, 75, 100, 150, 200, 300, 400, 500]
 
-    for k in K:
+    K = [1000]
+    P = [ 0.0001 ] 
+
+    for p in P:
         err_list = []
         acc_list = [] 
-        for err, acc  in list(futures.map(lambda x: eval_model(k,"random"), range(10))):
+        for err, acc  in list(futures.map(lambda x: eval_model(500, "random", "nearest_neighbor", p), range(16))):
             err_list.append(err)
             acc_list.append(acc)
         
-        print("Random")
+        print("Nearest neighbor %s " % p)
         err_mean = sum(err_list)/len(err_list)
         acc_mean = sum(acc_list)/len(acc_list)
         print("Mean err: %s" % (err_mean))
         print("Mean acc: %s" % (acc_mean))  
-        random_err_means.append(err_mean) 
-        random_acc_means.append(acc_mean) 
 
-        err_list = []
-        acc_list = [] 
-        for err, acc  in list(futures.map(lambda x: eval_model(k,"kmeans"), range(10))):
-            err_list.append(err)
-            acc_list.append(acc)
-        
-        print("Kmeans")
-        err_mean = sum(err_list)/len(err_list)
-        acc_mean = sum(acc_list)/len(acc_list)
-        print("Mean err: %s" % (err_mean))
-        print("Mean acc: %s" % (acc_mean))  
-        kmeans_err_means.append(err_mean) 
-        kmeans_acc_means.append(acc_mean) 
+
         
     # plot errors 
-    random_plot, = plt.plot(K, random_err_means, "ro--", label="random") 
-    kmeans_plot, = plt.plot(K, kmeans_err_means, "go--", label="kmeans")
-    plt.legend(handles=[random_plot, kmeans_plot])
-    plt.xlabel("number of hidden units") 
-    plt.ylabel("mean error")
-    plt.savefig("kmeans_vs_random.eps")
+#    plt.subplot("121")
+#    random_plot, = plt.plot(K, random_err_means, "ro--", label="random") 
+#    kmeans_plot, = plt.plot(K, kmeans_err_means, "go--", label="kmeans")
+#    plt.legend(handles=[random_plot, kmeans_plot])
+#    plt.xlabel("number of hidden units") 
+#    plt.ylabel("mean error")
+#    plt.title("Mean squarred error")
+#
+#    plt.subplot("122") 
+#    random_plot, = plt.plot(K, random_acc_means, "ro--", label="random") 
+#    kmeans_plot, = plt.plot(K, kmeans_acc_means, "go--", label="kmeans")
+ #   plt.legend(handles=[random_plot, kmeans_plot])
+ #   plt.xlabel("number of hidden units") 
+ #   plt.ylabel("mean accuracy")
+ #   plt.title("Classification accuracy")
+#
+ #   plt.savefig("kmeans_vs_random_fixed_widths.eps")
 
 

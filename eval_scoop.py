@@ -7,7 +7,7 @@ from utils import class_accuracy
 from data import preprocess_mnist, preprocess_digits 
 
 def eval(p, X_train, Y_train, X_test, Y_test):
-    model = RBFNet(500, p=p)
+    model = RBFNet(1000, p=p)
     model.fit(X_train, Y_train)
 
     print("Predict train data")
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     #(X_train, Y_train), (X_test, Y_test) = preprocess_digits() 
     (X_train, Y_train), (X_test, Y_test) = preprocess_mnist() 
 
-    param_values = list( np.logspace(-4, -7, 4)  )
+    param_values = list( np.logspace(-1, -4, 4)  )
     ret_values = list(futures.map(lambda x: eval(x, X_train, Y_train, X_test, Y_test), param_values))
     
     for model, train_acc, test_acc in ret_values:
