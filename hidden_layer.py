@@ -21,27 +21,8 @@ class HiddenLayer():
         if not self.centers:
             self._set_centers(X)
         #create the array of kernels 
-        
-        self.kernels = np.array([ create_kernel(kernel, self.p) for _ in range(self.k)])
-
+        self.kernels = np.array([ create_kernel(kernel_type=self.kernel, p=self.p) for _ in range(self.k)])
         self._set_widths(self.compute_widths) 
-
-        def create_kernel(kernel="Gaussian",p=1.0):
-            """
-            Create kernel of type given by kernel_type.
-            An extra parameter of kernel is given by p.
-            """
-            if kernel == "Gaussian":
-                return Gaussian(p)
-            if kernel == "Multiquadric":
-                return Multiquadric(p)
-            if kernel == "InverseMultiquadric":
-                return InverseMultiquadric(p)
-            if kernel == "ProductKernel":
-                return ProductKernel(p) 
-            if kernel == "SumKernel":
-                return SumKernel(p) 
-            raise Exception("No valid kernel")
 
         
     def _set_centers_kmeans(self, X):
