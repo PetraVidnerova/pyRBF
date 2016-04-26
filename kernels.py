@@ -18,14 +18,23 @@ class BaseKernel():
     def set_param(self, p):
         self.p = p 
 
+    def get_param(self):
+        return self.p
+
 
 class Gaussian(BaseKernel):
     """
     Gaussian kernel.
     """
-    def eval(self,x,y):
+    def eval(self, x, y):
         return np.exp(-self.p*norm2(x-y))
 
+    def deriv_y(self, x, y):
+        # TODO 
+        return np.exp(-self.p*norm2(x-y))
+
+    def deriv_p(self, x, y):
+        return -norm2(x-y)*np.exp(-self.p*norm2(x-y)) 
 
 class Multiquadric(BaseKernel): 
     """

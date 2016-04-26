@@ -2,6 +2,7 @@ from sklearn.base import BaseEstimator, RegressorMixin
 import scipy.linalg as linalg 
 import numpy as np 
 from hidden_layer import *
+from sklearn.metrics import mean_squared_error
 
 class RBFNet(BaseEstimator,RegressorMixin): 
     """
@@ -50,17 +51,57 @@ class RBFNet(BaseEstimator,RegressorMixin):
         self.set_centers = set_centers
         self.verbose = verbose
 
-    def fit(self,X,y):
+    def fit(self, X, y):
         self.hl = HiddenLayer(self.k, kernel=self.kernel, p=self.p, compute_widths=self.compute_widths, 
                               set_centers=self.set_centers, verbose=self.verbose) 
         # Computes hidden layer actiovations.
         self.hidden_ = self.hl.fit_transform(X)
         # Computes output layer weights. 
         if self.verbose: print("Solving output weights.")
-        self.w_ = np.dot(linalg.pinv2(self.hidden_),y) 
+        self.w_ = np.dot(linalg.pinv2(self.hidden_),y)
         return self 
 
         
-    def predict(self,X):
+    def predict(self, X):
         self.hidden_ = self.hl.transform(X) 
         return np.dot(self.hidden_, self.w_) 
+
+
+    def _parameters(self):
+        params = self.hl.parameters()
+        params = np.hstack((params, self.w_.ravel()))
+        return params
+
+    def _set_parameters(self, parameters):
+        #        self.hl.set_parameters(params[:self.k*self.n+self.k])
+        self.hl.set_parameters(parameters[:self.k])
+        self.w_ = parameters[self.k:].reshape((self.k,self.m)) 
+        
+
+    def _objective(self, parameters):
+        self._set_parameters(parameters) 
+        yy = self.predict(self.X) 
+        return 0.5*mean_squared_error(self.Y, yy) 
+
+    def _derivative(self, parameters):
+        deriv = np.zeros( parameters.shape )
+        self._set_parameters(parameters) 
+        YY = self.predict(self.X) 
+        E = YY-self.Y
+        HiddenDeriv_p = self.hl.deriv_p(self.X)
+        for t in range(len(self.X)):
+            for k in range(self.k): 
+                for q in range(self.m):
+                    # widths
+                    deriv[k] += E[t][q]*self.w_[k][q]*HiddenDeriv_p[t][k]
+                    # output weights 
+                    deriv[self.k+k*self.m+q] += E[t][q]*self.hidden_[t][k]
+        return deriv / (len(self.X)*self.m)
+
+    def _minimize(self, X, Y):
+        self.X = X
+        self.Y = Y 
+        self.n = X.shape[1] # input dimension 
+        self.m = Y.shape[1] # output dimension 
+        #scipy.optimize.minimize
+        pass 

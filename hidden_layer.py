@@ -72,3 +72,26 @@ class HiddenLayer():
             for j in range(self.k):
                 self.hidden_[i][j] = self.kernels[j].eval(X[i],self.centers[j])
         return self.hidden_
+
+    def deriv_p(self, X):
+        deriv = np.zeros((len(X), self.k))
+        for i in range(len(X)):
+            for j in range(self.k):
+                deriv[i][j] = self.kernels[j].deriv_p(X[i], self.centers[j]) 
+        return deriv 
+
+    def parameters(self):
+        #params = self.centers.ravel() 
+        #params = np.hstack(params, self.widths)
+        params = np.zeros(self.k) 
+        for k in range(self.k):
+            params[k] = self.kernels[k].get_param()  
+        return params
+
+        
+    def set_parameters(self, params):
+        for k in range(self.k):
+            self.kernels[k].set_param(params[k]) 
+            
+
+        

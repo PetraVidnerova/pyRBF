@@ -5,9 +5,10 @@ from scoop import futures
 from rbf import *
 from utils import class_accuracy
 from data import preprocess_mnist, preprocess_digits 
+import pickle
 
 def eval(p, X_train, Y_train, X_test, Y_test):
-    model = RBFNet(1000, p=p)
+    model = RBFNet(1000, p=0.01, kernel="Gaussian", compute_widths="none", set_centers="random")
     model.fit(X_train, Y_train)
 
     print("Predict train data")
@@ -27,13 +28,15 @@ if __name__ == "__main__":
     #(X_train, Y_train), (X_test, Y_test) = preprocess_digits() 
     (X_train, Y_train), (X_test, Y_test) = preprocess_mnist() 
 
-    param_values = list( np.logspace(-1, -4, 4)  )
+    param_values = list( range(10)  )
     ret_values = list(futures.map(lambda x: eval(x, X_train, Y_train, X_test, Y_test), param_values))
     
-    for model, train_acc, test_acc in ret_values:
-        print(model.get_params())
+    for (model, train_acc, test_acc), index in zip(ret_values, range(10)):
+        print(index, model.get_params())
         print("Train_acc %s" % train_acc) 
         print("Test_acc %s" % test_acc)
+        filename = "rbf_mnist_%s.pkl" % index
+        pickle.dump(model, open(filename, "wb"))
 
     end = timer() 
     minutes = (end-start)/60 
