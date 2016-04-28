@@ -1,7 +1,8 @@
+import numpy as np 
 from sklearn.datasets import load_digits
 from keras.datasets import mnist 
 from keras.utils import np_utils
-
+import pandas as pd 
 
 nb_classes = 10 
 
@@ -38,3 +39,15 @@ def preprocess_digits():
 
 
     return (X_train, Y_train), (X_train, Y_train)
+
+
+def preprocess_sin():
+    data = pd.read_csv("sin.csv",";") 
+    X = data[data.columns[:-1]] 
+    y = data[data.columns[-1]]
+
+
+    X = X.as_matrix()
+    y = y.as_matrix()
+    y = y.reshape((len(y),1))
+    return (X, y), (X, y) 
