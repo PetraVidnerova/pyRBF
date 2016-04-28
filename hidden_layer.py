@@ -99,7 +99,7 @@ class HiddenLayer():
         
     def set_parameters(self, params):
         lenc = self.k*self.n 
-        self.centers = params[:lenc].reshape((self.k, self.n))
+        self.centers = params[:lenc].reshape(self.k, self.n)
         for k in range(self.k):
             self.kernels[k].set_param(params[lenc+k]) 
             

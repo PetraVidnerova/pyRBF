@@ -37,6 +37,13 @@ class RBFNet(BaseEstimator,RegressorMixin):
                      'nearest_neighbor' distances are proportional to mean distance 
                       from n nearest neighbors.
     
+    compute_weights: bool, optional (default=True) 
+                     if True output weights are computed by pseudoinversion, 
+                     otherwise output weights are skiped 
+
+    gradient: bool, optional (default=False)
+              tune all parameters by gradient minimization 
+
     n_neighbors: int, optional (default=3)
                  Number of nearest neighbors if widths are calculated 
                  using nearest_neighbors.
@@ -44,22 +51,34 @@ class RBFNet(BaseEstimator,RegressorMixin):
     verbose : bool, optional (default=True)
     
     """
-    def __init__(self, k=10, kernel="Gaussian", p=1.0, set_centers="random", compute_widths='none', verbose=True):
+    def __init__(self, k=10, kernel="Gaussian", p=1.0, set_centers="random", compute_widths='none', 
+                 compute_weights = True, gradient=False, 
+                 verbose=True):
         self.k = k
         self.kernel = kernel 
         self.p = p
         self.compute_widths = compute_widths
         self.set_centers = set_centers
         self.verbose = verbose
+        self.compute_weights = compute_weights 
+        self.gradient = gradient 
 
     def fit(self, X, y):
+        self.n = X.shape[1]
+        self.m = y.shape[1]
         self.hl = HiddenLayer(self.k, kernel=self.kernel, p=self.p, compute_widths=self.compute_widths, 
                               set_centers=self.set_centers, verbose=self.verbose) 
         # Computes hidden layer actiovations.
         self.hidden_ = self.hl.fit_transform(X)
         # Computes output layer weights. 
-        if self.verbose: print("Solving output weights.")
-        self.w_ = np.dot(linalg.pinv2(self.hidden_),y)
+        if self.compute_weights:
+            if self.verbose: print("Solving output weights.")
+            self.w_ = np.dot(linalg.pinv2(self.hidden_),y)
+        else:
+            self.w_ = np.zeros((self.k, self.m))
+        # Gradient optimization
+        if self.gradient:
+            self._minimize(X, y)
         return self 
 
         
@@ -74,7 +93,7 @@ class RBFNet(BaseEstimator,RegressorMixin):
         return params
 
     def _set_parameters(self, parameters):
-        lenc = self.k*self.n 
+        lenc = self.k*self.n
         self.hl.set_parameters(parameters[:lenc+self.k])
         self.w_ = parameters[lenc+self.k:].reshape((self.k,self.m)) 
 
@@ -109,7 +128,10 @@ class RBFNet(BaseEstimator,RegressorMixin):
         self.n = X.shape[1] # input dimension 
         self.m = Y.shape[1] # output dimension 
         
-        opt_params = minimize(self._objectives, self._parameters, jac = self._derivative)
-        self._set_parameters(opt_params)
-
+        opt_params = minimize(self._objective, self._parameters(), jac = self._derivative, 
+                              method = 'Newton-CG', callback = lambda x: print("#"),
+                              options = { "maxiter" : 1000, "ftol" : 1.0e-10 })
+        print(opt_params)
+        self._set_parameters(opt_params['x'])
+        
 
