@@ -18,6 +18,7 @@ class HiddenLayer():
         self.verbose = verbose
 
     def fit(self,X):
+        self.n = X.shape[1] 
         if not self.centers:
             self._set_centers(X)
         #create the array of kernels 
@@ -79,19 +80,29 @@ class HiddenLayer():
             for j in range(self.k):
                 deriv[i][j] = self.kernels[j].deriv_p(X[i], self.centers[j]) 
         return deriv 
+        
+    def deriv_c(self, X):
+        deriv = np.zeros((len(X), self.k, self.n))
+        for i in range(len(X)):
+            for j in range(self.k):
+                deriv[i][j] = self.kernels[j].deriv_c(X[i], self.centers[j])
+        return deriv
 
     def parameters(self):
-        #params = self.centers.ravel() 
-        #params = np.hstack(params, self.widths)
-        params = np.zeros(self.k) 
+        params = self.centers.ravel() 
+        lenc = self.k*self.n 
+        params = np.hstack((params, np.zeros(self.k))) 
         for k in range(self.k):
-            params[k] = self.kernels[k].get_param()  
+            params[lenc+k] = self.kernels[k].get_param()  
         return params
 
         
     def set_parameters(self, params):
+        lenc = self.k*self.n 
+        self.centers = params[:lenc].reshape((self.k, self.n))
         for k in range(self.k):
-            self.kernels[k].set_param(params[k]) 
+            self.kernels[k].set_param(params[lenc+k]) 
             
 
         
+

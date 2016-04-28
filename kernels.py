@@ -29,12 +29,14 @@ class Gaussian(BaseKernel):
     def eval(self, x, y):
         return np.exp(-self.p*norm2(x-y))
 
-    def deriv_y(self, x, y):
-        # TODO 
-        return np.exp(-self.p*norm2(x-y))
-
     def deriv_p(self, x, y):
         return -norm2(x-y)*np.exp(-self.p*norm2(x-y)) 
+
+    def deriv_c(self, x, y):
+        """
+        Returns vector of derivatives dc_i.
+        """ 
+        return 2 * self.p * (x-y) * self.eval(x, y)
 
 class Multiquadric(BaseKernel): 
     """

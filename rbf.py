@@ -1,5 +1,6 @@
 from sklearn.base import BaseEstimator, RegressorMixin
 import scipy.linalg as linalg 
+from scipy.optimize import minimize
 import numpy as np 
 from hidden_layer import *
 from sklearn.metrics import mean_squared_error
@@ -69,14 +70,14 @@ class RBFNet(BaseEstimator,RegressorMixin):
 
     def _parameters(self):
         params = self.hl.parameters()
-        params = np.hstack((params, self.w_.ravel()))
+        params = np.hstack((params, self.w_.ravel()))    
         return params
 
     def _set_parameters(self, parameters):
-        #        self.hl.set_parameters(params[:self.k*self.n+self.k])
-        self.hl.set_parameters(parameters[:self.k])
-        self.w_ = parameters[self.k:].reshape((self.k,self.m)) 
-        
+        lenc = self.k*self.n 
+        self.hl.set_parameters(parameters[:lenc+self.k])
+        self.w_ = parameters[lenc+self.k:].reshape((self.k,self.m)) 
+
 
     def _objective(self, parameters):
         self._set_parameters(parameters) 
@@ -89,13 +90,17 @@ class RBFNet(BaseEstimator,RegressorMixin):
         YY = self.predict(self.X) 
         E = YY-self.Y
         HiddenDeriv_p = self.hl.deriv_p(self.X)
+        HiddenDeriv_c = self.hl.deriv_c(self.X) 
+        lenc = self.k * self.n
         for t in range(len(self.X)):
             for k in range(self.k): 
                 for q in range(self.m):
+                    #centers 
+                    deriv[k*self.n:(k+1)*self.n] += E[t][q]*self.w_[k][q]*HiddenDeriv_c[t][k] 
                     # widths
-                    deriv[k] += E[t][q]*self.w_[k][q]*HiddenDeriv_p[t][k]
+                    deriv[lenc+k] += E[t][q]*self.w_[k][q]*HiddenDeriv_p[t][k]
                     # output weights 
-                    deriv[self.k+k*self.m+q] += E[t][q]*self.hidden_[t][k]
+                    deriv[lenc+self.k+k*self.m+q] += E[t][q]*self.hidden_[t][k]
         return deriv / (len(self.X)*self.m)
 
     def _minimize(self, X, Y):
@@ -103,5 +108,8 @@ class RBFNet(BaseEstimator,RegressorMixin):
         self.Y = Y 
         self.n = X.shape[1] # input dimension 
         self.m = Y.shape[1] # output dimension 
-        #scipy.optimize.minimize
-        pass 
+        
+        opt_params = minimize(self._objectives, self._parameters, jac = self._derivative)
+        self._set_parameters(opt_params)
+
+
