@@ -7,10 +7,10 @@ from utils import class_accuracy
 from timeit import default_timer as timer 
 import sys
 
-(X_train, Y_train), (X_test, Y_test) = preprocess_digits() 
+(X_train, Y_train), (X_test, Y_test) = preprocess_sin() 
 
 start = timer() 
-model = RBFNet(250, kernel="Gaussian", p=0.00001, set_centers="random", compute_widths='none')
+model = RBFNet(10, kernel="Gaussian", p=0.00001, set_centers="random", compute_widths='none')
 model.fit(X_train, Y_train) 
 yy = model.predict(X_train)
 end = timer() 
