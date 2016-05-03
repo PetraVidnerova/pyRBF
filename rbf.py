@@ -135,3 +135,16 @@ class RBFNet(BaseEstimator,RegressorMixin):
         self._set_parameters(opt_params['x'])
         
 
+    def _simple_minimize(self, X, Y):
+        self.X = X
+        self.Y = Y
+        self.n = X.shape[1]
+        self.m = Y.shape[1] 
+
+        params = self._parameters()
+        for i in range(100):
+            if i % 10 == 0:
+                print(self._objective(params))
+            params -= 0.001*self._derivative(params) 
+            
+        self._set_parameters(params)
